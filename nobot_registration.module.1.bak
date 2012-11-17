@@ -1,0 +1,686 @@
+<?php
+
+/**
+ * @file
+ * Helps prevent bot registration
+ *
+ */
+
+
+/**
+ * a file to keep all the database call function in as a way of keeping code organized
+ */
+include_once('nobot_registration.data.inc');
+
+
+
+/**
+ * Implements hook_menu().
+ */
+function nobot_registration_menu() {
+  $items = array();
+  // Admin menu items template.
+  $items['admin/nobot_registration'] = array(
+    'title' => 'nobot_registration',
+    'description' => 'nobot_registration menu item.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nobot_registration_admin_form'),
+    'access arguments' => array('administer nobot_registration'),
+    'file' => 'nobot_registration.admin.inc',
+  );
+
+  // Normal menu item full template.
+  $items['nobot_registration'] = array(
+    'title' => 'nobot_registration',
+    //'title callback' => TRUE, // If TRUE you must declare a title argument function.
+    //'title arguments' => array('title_argument_function'),
+    'description' => 'nobot_registration menu item.',
+    'page callback' => 'nobot_registration_function',
+    'page arguments' => array(0, 'Passed as an argument from menu page arguments.'),
+    'access callback' => 'user_access',
+    //'access callback' => 'access_arguments_function', // Specify your own access function.
+    'access arguments' => array('nobot_registration access'),
+    'type' => MENU_NORMAL_ITEM, // Or this could be a MENU_CALLBACK.
+    //'file path' => '',
+    //'file' => '',
+    //'weight' => 0,
+    //'menu_name' => '',
+  );
+
+  // Tabbed menu item template works with MENU_DEFAULT_LOCAL_TASK
+  // and in this context is a placeholder, it has the default tab's callback.
+  $items['nobot_registration/tabbed'] = array(
+    'title' => 'nobot_registration Tabs',
+    'description' => 'nobot_registration Tabbed main menu item.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nobot_registration_simple_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('nobot_registration access'),
+    'type' => MENU_NORMAL_ITEM,
+  );
+
+  // Default tabbed item template.
+  // MENU_DEFAULT_LOCAL_TASK is a stub of the MENU_NORMAL_ITEM which makes the callback
+  // Does not need a page callback of its own.
+  $items['nobot_registration/tabbed/simple'] = array(
+    'title' => 'Simple form',
+    'description' => 'nobot_registration Tabbed default item.',
+    'access callback' => 'user_access',
+    'access arguments' => array('nobot_registration access'),
+    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'weight' => 0,
+  );
+
+
+  // Additional tab item - this has it's own page callback.
+  $items['nobot_registration/tabbed/dynamic'] = array(
+    'title' => 'Dynamic form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nobot_registration_dynamic_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('nobot_registration access'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 1,
+  );
+
+
+  // Additional tab item - this has it's own page callback.
+  $items['nobot_registration/tabbed/ajax'] = array(
+    'title' => 'Ajax form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nobot_registration_ajax_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('nobot_registration access'),
+    'type' => MENU_LOCAL_TASK,
+    'weight' => 2,
+  );
+
+  // Ajax autocomplete callback url.
+  $items['nobot_registration/autocomplete/modulelist'] = array(
+    'title' => 'nobot_registration autocomplete',
+    'page callback' => 'nobot_registration_ajax_autocomplete_menulist',
+    'access callback' => 'user_access',
+    'access arguments' => array('nobot_registration access'),
+    'type' => MENU_CALLBACK,
+  );
+
+
+  return $items;
+}
+
+/**
+* Implementation of hook_permission()
+*/
+function nobot_registration_permission() {
+  return array(
+    'access nobot_registration' => array(
+      'title' => t('nobot_registration access'),
+      'description' => t('Allow users to edit nobot_registration'),
+    ),
+  );
+}
+
+/**
+ * Custom function
+ * @params - in this case 2 arguments passed from a menu item
+ */
+function nobot_registration_function($argumentOne, $argumentTwo) {
+  $msg = 'Function ' . "nobot_registration" . '_function($arg1, $arg2) called.<br />
+  Two arguments received, which are:- .<br />'
+  . "($argumentOne, $argumentTwo)";
+  return t($msg);
+}
+
+
+
+
+/**
+* Implements hook_help().
+*/
+function nobot_registration_help($path, $arg) {
+  if ($path == 'admin/help#nobot_registration') {
+    return t('A module to be nobot_registrationed.');
+  }
+}
+
+
+
+
+
+
+/**
+ * Implements hook_form().
+ */
+function nobot_registration_simple_form() {
+  // Form values example.
+  $form['#method'] = 'post';
+  //$form['#action'] = 'http://example.com/?q=foo/bar';
+  //$form['#attributes'] = array(
+  //'enctype' => 'multipart/form-data',
+  //'target' => 'name_of_target_frame'
+  //);
+  $form['#prefix'] = '<div class="nobot_registration-form-class">';
+  $form['#suffix'] = '</div>';
+
+  // Textfield example.
+  $form['nobot_registration']['text'] = array(
+    '#type' => 'textfield',
+    '#type' => 'submit',
+    '#type' => 'checkbox',
+    '#type' => 'radio',
+    '#type' => 'textfield',
+    '#title' => t('A textfield'),
+    '#description' => t('Textfield data goes in here.'),
+    '#default_value' => t('Type stuff here'),
+    //'#options' => drupal_map_assoc(array()),
+    // Warning: the onclick method used here can be annoying to users as it clears the textfield every time they click in it.
+    // note: if you want multiple attributes each needs its own array
+    '#attributes' => array(
+      array('onclick' => 'this.value="";'),
+      array('class' => 'nobot_registration_text-text-class'),
+      ),
+    '#field_prefix' => t(''),
+    '#field_suffix' => t('After the element'),
+    //'#required' => TRUE,
+    '#tree' => FALSE,
+    '#access' => user_access('nobot_registration access'), // Restrict this element to nobot_registration access only
+    //'#array_parents' =>
+    '#attached' => array('js' => array(drupal_get_path('module', 'nobot_registration') . '/js/nobot_registration.js', )),
+    //'#after_build'
+  );
+
+  // Javascript select example.
+  /**
+   * This seems to me to be the most efficient way of implementing an onchange event.
+   * The onchange attribute references the form id.
+   * This method does not require a submit button, it will call the first submit button on the form.
+   * If there is no submit button on the form hook_form_submit() will not be called, but hook_form_validate() will.
+   */
+  $options = nobot_registration_demo_select_data_load();  // Some data is loaded for the option - function in: nobot_registration.data.inc .
+  $form['nobot_registration']['select'] = array(
+    '#type' => 'select',
+    '#title' => t('A select'),
+    '#options' => drupal_map_assoc($options), // drupal_map_assoc will key the array
+    '#default_value' => 'fish', // note: this is dictated by the key of the array - use array_keys();
+    '#attributes' => array('onchange' => 'document.nobot_registration-form.submit();'), // Note: this must be the id of the form.
+    '#description' => 'Select something from the list.',
+  );
+
+  // Date example.
+  $form['nobot_registration']['date'] = array(
+    '#title' => t('Date'),
+    '#type' => 'date',
+    '#description' => t('Change the date.'),
+    '#default_value' => array(
+      'month' => format_date(time(), 'custom', 'n'),
+      'day' => format_date(time(), 'custom', 'j'),
+      'year' => format_date(time(), 'custom', 'Y'),
+    ),
+  );
+
+  // File upload - note: requires $form['#attributes']['enctype'] = 'multipart/form-data'; .
+  $form['nobot_registration']['picture_upload'] = array(
+    '#type' => 'file',
+    '#title' => t('Upload picture'),
+    '#size' => 48,
+    '#description' => 'Your virtual face or picture.'
+  );
+
+  // Checkbox example.
+  $form['nobot_registration']['checkbox'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('A checkbox'),
+    '#default_value' => 1,
+    '#description' => t('Yes or no.'),
+  );
+
+  // Checkboxes example.
+  $form['nobot_registration']['checkboxes'] = array(
+    '#type' => 'checkboxes',
+    '#title' => t('Some checkboxes'),
+    '#options' => $options,
+    '#default_value' => array(2, 4), // Note: this is dictated by the key of the array - use array_keys().
+    '#description' => 'Select things from the list.',
+  );
+
+  // Password example.
+  $form['nobot_registration']['pass'] = array(
+    '#type' => 'password',
+    '#title' => t('Password'),
+    '#maxlength' => 60,
+    '#size' => 15,
+  );
+
+  // Confirmed password example.
+  $form['nobot_registration']['account']['pass'] = array(
+    '#type' => 'password_confirm',
+    '#description' => 'To change the current user password, enter the new password in both fields.',
+    '#size' => 25,
+  );
+
+  // Secret value example - never passed to the browser, goes straight to $form_state.
+  $form['nobot_registration_secret']['value'] = array(
+    '#type' => 'value',
+    '#value' => t('theSecret'),
+  );
+
+  // Hidden value example.
+  $form['nobot_registration_hidden']['value'] = array(
+    '#type' => 'hidden',
+    '#value' => t('notSeenOnScreen'),
+  );
+
+  // Item example.
+  $form['nobot_registration']['item'] = array(
+    '#type' => 'item',
+    '#title' => 'Item',
+    '#description' => 'This is an item output',
+  );
+
+  // Image button example - note: values are retrieved from $form_state['clicked_button']['#value'].
+  $form['nobot_registration']['image_button'] = array(
+    '#type' => 'image_button',
+    '#src' => 'images/button.png',
+    '#value' => 'a button',
+  );
+
+  // Submit example.
+  $form['nobot_registration']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'Submit', // The name on the button.
+    '#description' => 'Submit this.', // Displays nothing.
+  );
+
+  // Post render javascript used in the form.
+  $form['nobot_registration']['javascript'] = array(
+    '#markup' => '
+    <script>
+      // form javascript
+      function myfunction(variable){
+        var v = variable;
+      }
+    </script>
+    ',
+  );
+
+    // Add the JavaScript callback to automatically set the timezone.
+    drupal_add_js("
+// Global Killswitch.
+if (Drupal.jsEnabled) {
+  $(document).ready(function() {
+    Drupal.setDefaultTimezone();
+  });
+}", 'inline');
+
+  return $form;
+}
+
+/**
+ * Implements hook_form_validate().
+ */
+function nobot_registration_simple_form_validate($form, &$form_state) {
+  drupal_set_message('<pre>The validate values in $form_state[values] <br>' . print_r( $form_state['values'], TRUE).'</pre>');
+  if ($form_state['values']['text'] == "") {
+    // Format - form_set_error('element', 'message').
+    form_set_error('text', 'nobot_registration_text Must have text');
+  }
+  //[testmod1_select] => 'orange'
+}
+
+/**
+ * Implements hook_form_submit().
+ */
+function nobot_registration_simple_form_submit($form, &$form_state) {
+  drupal_set_message('<pre>The submitted values in $form_state[\'values\'] <br>' . print_r( $form_state['values'], true) . '</pre>');
+}
+
+
+
+/**
+ * Implements hook_form_alter().
+ */
+function nobot_registration_form_alter(&$form, $form_state, $form_id) {
+  switch ($form_id) {
+    case 'user_login':
+    case 'user_login_block':
+      ;
+    break;
+    case 'nobot_registration_simple': ; break;
+  }
+}
+
+
+
+/**
+ * Implements hook_form_alter().
+ */
+function nobot_registration_form_user_register_form_alter(&$form, $form_state) {
+  // Intercept user_register_form
+  $form['#submit'] = array();
+  $form['#submit'][] = 'nobot_registration_form_user_register_form_submit';
+
+}
+
+function nobot_registration_form_user_register_form_validate(&$form, $form_state) {
+  drupal_set_message('Validate');
+}
+
+function nobot_registration_form_user_register_form_submit($form, &$form_state) {
+  $nobot = $form_state['values']['field_nobot']['und'][0]['value'];
+  if (strlen($nobot) < 13) {
+    $form_state['redirect'] = '';
+  }else{
+    user_register_submit($form, $form_state);
+  }
+
+
+
+
+}
+
+/**
+ * Implements hook_form_alter().
+ */
+function nobot_registration_simple_form_alter(&$form, $form_state) {
+
+}
+
+
+
+
+
+/**
+ * Implements hook_form().
+ */
+function nobot_registration_dynamic_form() {
+  $options = nobot_registration_demo_select_data_load();  // Some data is loaded for the option - function in: nobot_registration.data.inc .
+
+  // A list of things to select from.
+  $form['nobot_registration_select'] = array(
+    '#type' => 'select',
+    '#title' => 'Dynamic select',
+    '#options' => drupal_map_assoc($options), // Function drupal_map_assoc will key the array.
+    '#default_value' => 'orange', // Note: this is dictated by the key of the array - use array_keys().
+    '#description' => 'Select something from the list.',
+  );
+
+  // The fruit selection example.
+  // Note: the states array can only OR items, it can not AND them.
+  // Note: dynamic forms don't like [form][fruit][apple] array style addressing.
+  // The apple selection - appears if apple is selected from $form['nobot_registration_select']['#options'].
+  $form['nobot_registration_apple'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Dynamic fruit selected',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#states' => array(
+      'visible' => array( // Note: this is not #visible.
+        ':input[name="nobot_registration_select"]' => array( // Note: the : infront of input. the name of the HTML element which triggers this.
+          'value' => 'apple' // Note: a key value from the trigger elements' #options list
+        ),
+      ),
+    ),
+  );
+
+  // This also only appears if apple is selected.
+  $form['nobot_registration_apple']['comment'] = array(
+    '#type' => 'item',
+    '#description' => 'Hey it\'s a piece of fruit.',
+  );
+
+  $form['nobot_registration_apple']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('submit apple'),
+  );
+
+  $form['nobot_registration_fish'] = array(
+    '#type' => 'fieldset',
+    '#title' => 'Fish list',
+    '#description' => 'A list of fishes.',
+    '#collapsible' => TRUE,
+    '#collapsed' => FALSE,
+    '#states' => array(
+      'visible' => array( // Reads - I will only be visible if nobot_registration_select option = fish.
+        ':input[name="nobot_registration_select"]' => array( 'value' => 'fish', ),
+      ),
+    ),
+  );
+
+  // This is hidden, if nobot_registration_fish is hidden, because it is called $form['nobot_registration_fish']...
+  $form['nobot_registration_fish']['fish_list'] = array(
+    '#type' => 'radios',
+    '#title' => t('Select your fish'),
+    '#options' => drupal_map_assoc(array('shark', 'haddock', 'jelly')),
+  );
+
+  $form['nobot_registration_fish']['shark_comment'] = array(
+    '#type' => 'item',
+    '#description' => t('Sharks can be a bit bitey.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="fish_list"]' => array( 'value' => t('shark'), ),
+      ),
+    ),
+  );
+
+  $form['nobot_registration_fish']['haddock_comment'] = array(
+    '#type' => 'item',
+    '#description' => t('Every good haddock deserves a name.'),
+    '#states' => array(
+      'visible' => array(
+        ':input[name="fish_list"]' => array( 'value' => 'haddock', ),
+      ),
+    ),
+  );
+
+  $form['nobot_registration_fish']['haddock_text'] = array(
+    '#type' => 'textfield',
+    '#title' => 'Name your haddock',
+    '#description' => 'A haddock\'s name box.',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="fish_list"]' => array( 'value' => 'haddock', ),
+      ),
+    ),
+  );
+
+  $form['nobot_registration_fish']['jelly_comment'] = array(
+    '#type' => 'item',
+    '#description' => 'Not so much a fish as a party food.',
+    '#states' => array(
+      'visible' => array(
+        ':input[name="fish_list"]' => array( 'value' => 'jelly', ),
+      ),
+    ),
+  );
+
+  $form['nobot_registration_fish']['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('submit fish'),
+  );
+
+
+  return $form;
+}
+
+/**
+ * Implements hook_form_validate().
+ */
+function nobot_registration_dynamic_form_validate($form, &$form_state) {
+
+}
+
+/**
+ * Implements hook_form_submit().
+ */
+function nobot_registration_dynamic_form_submit($form, &$form_state) {
+  drupal_set_message('<pre>dynamic form $form_state[values] <br>' . print_r( $form_state['values'], TRUE) . '</pre>');
+}
+
+
+
+/**
+* Implements hook_form().
+*/
+function nobot_registration_ajax_form($form, &$form_state) {
+
+  // Ajax autocomplete textfield example.
+  $form['nobot_registration_text'] = array(
+    '#type' => 'textfield',
+    '#autocomplete_path' => 'nobot_registration/autocomplete/modulelist',
+    '#title' => t('Type a module name'),
+    '#description' => 'Autocompletes from a list of installed modules.',
+    '#default_value' => t(''),
+    '#field_prefix' => t(''),
+    '#field_suffix' => t('Auto complete on any letters'),
+    '#access' => user_access('nobot_registration access'),
+
+  );
+
+  $form['nobot_registration_submit'] = array(
+    '#type' => 'submit',
+    '#value' => 'submit',
+  );
+  return $form;
+}
+
+/**
+ * Ajax autocomplete function
+ * @params - none
+ * @returns - none
+ * passes the result to drupal_json_output(array)
+ */
+function nobot_registration_ajax_autocomplete_menulist($string) {
+  $matches = array();
+  // Your db querry here ...
+  $module_list = nobot_registration_module_list();
+
+  // Autocomplete likes a [$value] = $value list, as module_list() is just so formatted.
+  // The following foreach is unnecissary, included for illustration only.
+  foreach ($module_list as $item) {
+    // Note - stripos used to collect items by first matching letters
+    // if (stripos($item, $string) === 0) { $matches[$item] = check_plain($item); }
+
+    // Note - stripos used to collect items by any matching letters.
+    if (stripos($item, $string) !== FALSE) {
+      $matches[$item] = check_plain($item);
+    }
+  }
+
+  drupal_json_output($matches);
+}
+
+/**
+* Implements hook_form_submit().
+*/
+function nobot_registration_ajax_form_submit($form, &$form_state) {
+
+}
+
+
+
+
+/**
+ * Implements hook_form().
+ */
+function nobot_registration_multistep_form() {
+  return $form;
+}
+/**
+ * Implements hook_form_submit().
+ */
+function nobot_registration_multistep_form_submit() {
+
+}
+
+
+
+/**
+* Implements hook_block_info().
+*/
+function nobot_registration_block_info() {
+  $blocks = array();
+  $blocks['nobot_registration_block'] = array(
+    'info' => t('nobot_registration block'),
+    'status' => TRUE,
+    'region' => 'sidebar_first',
+    'weight' => 5,
+    'visibility' => 1,
+    'cache' => DRUPAL_NO_CACHE,
+  );
+  return $blocks;
+}
+
+/**
+* Implements hook_block_view().
+*/
+function nobot_registration_block_view($block_name = '') {
+  if ($block_name == 'nobot_registration_block') {
+    $list = array('a', 'b', 'c');
+    $theme_args = array('items' => $list, 'type' => 'ol');
+    $content = theme('item_list', $theme_args);
+    $block = array(
+    'subject' => t('nobot_registration block'),
+    'content' => $content,
+    );
+    return $block;
+  }
+}
+
+/**
+* Implements hook_block_configure().
+* Provides an admin block configuration form
+*/
+function nobot_registration_block_configure($delta) {
+  $form = array();
+  switch ($delta) {
+    case 'nobot_registration_block':
+      $form['nobot_registration_block_config'] = array(
+        '#type' => 'textfield',
+        '#title' => 'Configure nobot_registration',
+        '#description' => 'nobot_registration config',
+        '#default_value' => 'nobot_registration config value here',
+      );
+    ; break;
+  }
+  return $form;
+}
+
+/**
+* Implements hook_block_save().
+*/
+function nobot_registration_block_save($delta = '', $edit = array()) {
+  switch ($delta) {
+  case 'nobot_registration_block':
+    variable_set('nobot_registration_block_configuration', $edit['nobot_registration_block_config']);
+    break;
+  }
+  return;
+}
+
+
+
+
+
+/**
+* Implements hook_theme().
+* registers the theme with the theming engine
+*/
+function nobot_registration_theme() {
+  return array(
+    'nobot_registration' => array(
+      //'render element' => 'form', // If is a form theme.
+      //'template' => 'nobot_registration', // Use template if a template is to be used, otherwise will call theme_MODULE.
+      'variables' => array('name' => NULL, 'size' => NULL ), // Placeholders for variables to send when theme_MODULE is called.
+    ),
+  );
+}
+
+function theme_nobot_registration($variables) {
+  // Prints out themeing information for you to develop from.
+  print '<h4>Variables available to theme_nobot_registration</h4>';
+  print '<pre>';
+  print_r($variables);
+  print '</pre>';
+}
+

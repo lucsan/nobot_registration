@@ -1,0 +1,109 @@
+<?php
+
+/**
+ * @file
+ * Helps prevent bot registration
+ *
+ */
+
+
+/**
+ * Implements hook_menu().
+ */
+function nobot_registration_menu() {
+  $items = array();
+  // Admin menu items template.
+  $items['admin/config/development/nobot_registration'] = array(
+    'title' => 'nobot registration',
+    'description' => 'Configue nobot registration.',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nobot_registration_admin_form'),
+    'access arguments' => array('administer nobot_registration'),
+    'file' => 'nobot_registration.admin.inc',
+  );
+
+  $items['nobot_registration/dynamic'] = array(
+    'title' => 'Dynamic form',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('nobot_registration_dynamic_form'),
+    'access callback' => 'user_access',
+    'access arguments' => array('nobot_registration access'),
+    'type' => MENU_NORMAL_ITEM,
+    'weight' => 1,
+  );
+  return $items;
+}
+
+/**
+* Implementation of hook_permission()
+*/
+function nobot_registration_permission() {
+  return array(
+    'access nobot_registration' => array(
+      'title' => t('nobot_registration access'),
+      'description' => t('Allow users to edit nobot_registration'),
+    ),
+  );
+}
+
+/**
+* Implements hook_help().
+*/
+function nobot_registration_help($path, $arg) {
+  if ($path == 'admin/help#nobot_registration') {
+    return t('A module to be nobot_registrationed.');
+  }
+}
+
+
+
+
+/**
+ * Implements hook_form_alter().
+ */
+function nobot_registration_form_user_register_form_alter(&$form, $form_state) {
+  // Intercept user_register_form
+  $form['#submit'] = array();
+  $form['#submit'][] = 'nobot_registration_form_user_register_form_submit';
+}
+
+function nobot_registration_form_user_register_form_validate(&$form, $form_state) {
+  drupal_set_message('Validate');
+}
+
+function nobot_registration_form_user_register_form_submit($form, &$form_state) {
+  $nobot_field = variable_get('nobot_registration_nobot_field', '');
+  $nobot_check = variable_get('nobot_registration_nobot_check', 0);
+  $amhuman_field = variable_get('nobot_registration_amhuman_field', '');
+  $amhuman_check = variable_get('nobot_registration_amhuman_check', 0);
+  $proof_field = variable_get('nobot_registration_proof_field', '');
+  $proof_check = variable_get('nobot_registration_proof_check', 0);
+
+  if ($nobot_field != '' && $nobot_check) {
+    $value = $form_state['values'][$nobot_field]['und'][0]['value'];
+    if ($value) {
+      $form_state['redirect'] = '';
+      return;
+    }
+  }
+
+  if ($amhuman_field != '' && $amhuman_check) {
+    $value = $form_state['values'][$amhuman_field]['und'][0]['value'];
+    if (!$value) {
+      $form_state['redirect'] = '';
+      return;
+    }
+  }
+
+  if ($proof_field != '' && $proof_check) {
+    $proof_length = variable_get('nobot_registration_proof_length', 0);
+    $value = $form_state['values'][$proof_field]['und'][0]['value'];
+    if ((strlen($value)) < $proof_length) {
+      $form_state['redirect'] = '';
+      return;
+    }
+  }
+
+  user_register_submit($form, $form_state);
+}
+

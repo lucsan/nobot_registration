@@ -1,0 +1,45 @@
+<?php
+
+/**
+ * @file
+ * Install, update and uninstall functions for the nobot_registration module.
+ */
+
+/**
+ * Implements hook_schema().
+ */
+function nobot_registration_schema() {
+
+  $schema['nobot_registration'] = array(
+    // Table description.
+    'description' => t('Description of what the table is used for.'),
+      'fields' => array(
+      // Field definition.
+      'field1' => array(
+        'type' => 'int',
+        'unsigned' => TRUE,
+        'not null' => TRUE,
+        'default' => 0,
+        'description' => t('Description of what this field is used for.'),
+      ),
+    ),
+    // Index declarations.
+    'primary key' => array('field1'),
+  );
+  return $schema; 
+}
+
+/**
+ * Implements hook_install().
+ */
+function nobot_registration_install() {
+
+}
+
+/**
+ * Implements hook_uninstall().
+ */
+function nobot_registration_uninstall() {
+
+}
+
