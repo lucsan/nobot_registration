@@ -12,4 +12,4 @@ files[] = nobot_registration.admin.inc
 ;configure = admin/structure/types
 stylesheets[all][] = css/nobot_registration.css
 
-version = 7.x-0.0 dev
+version = 7.x-1.0 beta
