@@ -44,7 +44,7 @@ function nobot_registration_admin_form() {
     '#type' => 'checkbox',
     '#title' => 'No bot check',
     '#default_value' => $nobot_check,
-    '#description' => 'Check this to use the no bot checkbox on your registration form',
+    '#description' => 'Registration is denied if this box is checked by the applicant.',
   );
 
 
@@ -66,7 +66,7 @@ function nobot_registration_admin_form() {
     '#type' => 'checkbox',
     '#title' => 'Am Human check',
     '#default_value' => $amhuman_check,
-    '#description' => 'Check this to use the am human checkbox on your registration form',
+    '#description' => 'Registraition is denied if this box is not ticked by the applicant.',
   );
 
   $form['nobot_registration_amhuman_field'] = array(
@@ -88,7 +88,7 @@ function nobot_registration_admin_form() {
     '#type' => 'checkbox',
     '#title' => 'Prove your human',
     '#default_value' => $proof_check,
-    '#description' => 'Check this to use the prove it text on your registration form',
+    '#description' => 'Registration is denied if the applicants reason is less than the stated number of characters long. (Note spanbots often use 2 chars.)',
   );
 
   $form['nobot_registration_proof_field'] = array(

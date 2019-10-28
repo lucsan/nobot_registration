@@ -12,9 +12,8 @@
  */
 function nobot_registration_menu() {
   $items = array();
-  // Admin menu items template.
   $items['admin/config/development/nobot_registration'] = array(
-    'title' => 'nobot registration',
+    'title' => 'Nobot registration',
     'description' => 'Configue nobot registration.',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('nobot_registration_admin_form'),
@@ -27,7 +26,7 @@ function nobot_registration_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array('nobot_registration_dynamic_form'),
     'access callback' => 'user_access',
-    'access arguments' => array('nobot_registration access'),
+    'access arguments' => array('access nobot_registration'),
     'type' => MENU_NORMAL_ITEM,
     'weight' => 1,
   );
@@ -51,12 +50,24 @@ function nobot_registration_permission() {
 */
 function nobot_registration_help($path, $arg) {
   if ($path == 'admin/help#nobot_registration') {
-    return t('A module to be nobot_registrationed.');
+    $t = "Nobot registration module leverages a simple issue for spambots,</br>
+    To check a box or not to check, that is the question.</br></br>
+
+    Unless a bot is configured specifically for your site, it can not know what
+    the check boxes on the registration form are for. As there is often a terms and
+    conditions box the spam bot must defer to the lowest common denominator. Thus is
+    will tick a 'I am a bot' box as well as 'I agree to etc' box.</br></br>
+
+    Nobot provides 3 options, you can configure all, some or none. Simply create a field in
+    the user profile, and tell nobot about it. Remember the form fails if 'Nobot' is checked, fails
+     if 'Am human' is not checked,
+    and fails if the user text is shorter than the stated length. Most spam bots use a two char
+    text to fill text boxes, so make sure your default text is at least three characters
+    shorter than the stated length.";
+
+    return t($t);
   }
 }
-
-
-
 
 /**
  * Implements hook_form_alter().
